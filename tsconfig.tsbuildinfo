@@ -1,0 +1,1 @@
+{"root":["./src/index.ts","./src/config/index.ts","./src/controllers/user.controller.ts","./src/handlers/error.handler.ts","./src/handlers/response.handler.ts","./src/lib/client.ts","./src/middlewares/error.middleware.ts","./src/routes/index.ts","./src/routes/user.router.ts"],"version":"5.8.3"}

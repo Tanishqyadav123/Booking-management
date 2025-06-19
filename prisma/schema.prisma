@@ -1,0 +1,197 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  firstName String
+  lastName  String
+  password  String
+  userType  UserType
+  avatar    String? // User Avatar Url
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  eventDetails Event[]
+  bookingDetails Booking[]
+  paymentDetails Payment[]
+  
+}
+
+model AdminUser {
+  id              String     @id @default(uuid())
+  email           String     @unique
+  firstName       String
+  lastName        String
+  password        String
+  userType        UserType   @default(ADMIN)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  locationDetails Location[]
+}
+
+model Location {
+  id            Int      @id @default(autoincrement())
+  name          String
+  adminId       String
+  locationImage String? // Image Url
+  description   String?
+  state         String
+  country       String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // References :-
+  adminDetails AdminUser @relation(fields: [adminId], references: [id])
+  venueDetails Venue[]
+}
+
+model Venue {
+  id         Int      @id @default(autoincrement())
+  name       String
+  locationId Int
+  address    String
+  venueImage String? // Venue Image Url
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // References :-
+  locationDetails  Location     @relation(fields: [locationId], references: [id])
+  VenueSeatDetails VenueSeats[]
+  EventDetails     Event[]
+}
+
+model VenueSeats {
+  id        Int      @id @default(autoincrement())
+  venueId   Int
+  seatId    Int
+  seatCount Int
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// References :-
+  venueDetails Venue @relation(fields: [venueId], references: [id])
+  seatDetails  Seats @relation(fields: [seatId], references: [id])
+}
+
+model Seats {
+  id              Int      @id @default(autoincrement())
+  seatName        SeatType
+  seatDescription String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  VenueDetails VenueSeats[]
+  EventDetails EventSeats[]
+}
+
+model Booking {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  amountPaid Decimal  @db.Decimal(10,2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+   status BookingStatus @default(PENDING)
+
+  // References :-
+   
+   userDetails       User       @relation(fields: [userId] , references: [id])
+   paymentDetails    Payment[]
+   bookedSeatDetails  BookedSeat[]
+
+}
+
+model BookedSeat {
+  id            Int         @id @default(autoincrement())
+  bookingId     Int
+  eventSeatId   Int
+  quantity      Int         // Number of seats booked of this type
+  booking       Booking     @relation(fields: [bookingId], references: [id])
+  eventSeat     EventSeats  @relation(fields: [eventSeatId], references: [id])
+   status SeatBookingStatus @default(PENDING)
+}
+
+model Payment {
+  id         Int      @id @default(autoincrement())
+  paymentKey String // RazorPay Payment Key
+  userId     String
+  bookingId  Int
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+    // References :-
+   
+   userDetails  User @relation(fields: [userId], references: [id])
+   bookingDetails Booking       @relation(fields: [bookingId] , references: [id])
+
+}
+
+model Event {
+  id          Int      @id @default(autoincrement())
+  comedianId  String
+  venueId     Int
+  eventBanner String // Banner Url
+  startTime   DateTime
+  endTime    DateTime
+  name        String
+  description String?
+
+  // References :-
+  comedianDetails  User         @relation(fields: [comedianId], references: [id])
+  venueDetails     Venue        @relation(fields: [venueId], references: [id])
+  EventSeatDetails EventSeats[]
+   
+}
+
+model EventSeats {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  seatId    Int
+  seatCount Int
+  price     Decimal  @db.Decimal(10, 2)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  /// References :-
+  eventDetails Event @relation(fields: [eventId], references: [id])
+  seatDetails  Seats @relation(fields: [seatId], references: [id])
+  bookedSeatDetails BookedSeat[]
+}
+
+enum UserType {
+  COMEDIAN
+  VIEWERS
+  ADMIN
+}
+
+enum SeatType {
+  VIP
+  MID_RANGE
+  FRONT
+}
+
+enum SeatBookingStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+}
+enum BookingStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+  FAILED
+}

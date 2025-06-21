@@ -9,11 +9,9 @@ const config_1 = require("./config");
 const routes_1 = __importDefault(require("./routes"));
 const error_handler_1 = __importDefault(require("./handlers/error.handler"));
 const app = (0, express_1.default)();
-app.get('/hello-guys', (req, res, next) => {
-    res.send({
-        message: "I am Live"
-    });
-});
+// Adding the middleware for extracting data :-
+app.use(express_1.default.json());
+app.use(express_1.default.urlencoded({ extended: true }));
 app.use('/api/v1/', routes_1.default);
 // Introducing the middleware for error :-
 app.use(error_handler_1.default);

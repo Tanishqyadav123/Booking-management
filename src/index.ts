@@ -6,11 +6,9 @@ import errorMiddleware from './handlers/error.handler';
 const app = express();
 
 
-app.get('/hello-guys' , (req : Request , res : Response , next : NextFunction) =>{
-     res.send({
-          message : "I am Live"
-     })
-})
+// Adding the middleware for extracting data :-
+app.use(express.json())
+app.use(express.urlencoded({extended : true}))
 
 app.use('/api/v1/', router)
 

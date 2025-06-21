@@ -1,19 +1,21 @@
 "use strict";
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // Controller for signup routes :-
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signupUser = exports.verifyOtp = exports.sendOtp = void 0;
-const twilio_config_1 = require("../config/twilio.config");
-const config_1 = require("../config");
-const generate_otp_1 = require("../utils/generate.otp");
-const auth_validation_1 = require("../validations/auth.validation");
-const error_middleware_1 = require("../middlewares/error.middleware");
+exports.getMyProfile = exports.signinUser = exports.signupUser = exports.verifyOtp = exports.sendOtp = void 0;
 const auth_repo_1 = require("../repo/auth.repo");
+const config_1 = require("../config");
+const auth_validation_1 = require("../validations/auth.validation");
 const auth_entity_1 = require("../entity/auth.entity");
-const response_handler_1 = require("../handlers/response.handler");
 const bcrypt_1 = __importDefault(require("bcrypt"));
+const error_middleware_1 = require("../middlewares/error.middleware");
+const generate_otp_1 = require("../utils/generate.otp");
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const response_handler_1 = require("../handlers/response.handler");
+const twilio_config_1 = require("../config/twilio.config");
 const sendOtp = async (req, res, next) => {
     try {
         const { success, data } = auth_validation_1.sendOtpSchema.safeParse(req.body);
@@ -119,8 +121,26 @@ const signinUser = async (req, res, next) => {
             throw next(new error_middleware_1.ErrorHandler("Invalid Credentails", 400));
         }
         // Generate the token with userId and userRole :-
+        const token = jsonwebtoken_1.default.sign({ userId: isEmailExist.id, userRole: isEmailExist.userType }, config_1.JWT_SECRET, {
+            expiresIn: "1d"
+        });
+        return (0, response_handler_1.responseHandler)(res, "LoggedIn SuccessFully", 200, { token });
     }
     catch (error) {
         throw error;
     }
 };
+exports.signinUser = signinUser;
+const getMyProfile = async (req, res) => {
+    try {
+        const { userId, userRole } = req.user;
+        console.log(userId, userRole, "Printing the userRole and UserType");
+        // Fetch user Profile Details using userId and userRole :-
+        const profileDetails = await (0, auth_repo_1.fetchUserProfileService)({ userId });
+        return (0, response_handler_1.responseHandler)(res, "User's Profile Details ", 201, profileDetails);
+    }
+    catch (error) {
+        throw error;
+    }
+};
+exports.getMyProfile = getMyProfile;

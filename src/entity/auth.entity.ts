@@ -1,10 +1,9 @@
 export enum verificationCodeType {
-    FORGOT = "FORGOT",
-    VERIFY = "VERIFY"
+  FORGOT = "FORGOT",
+  VERIFY = "VERIFY"
 }
 export enum userType {
-    VIEWER = "VIEWER",
-    COMEDIAN = "COMEDIAN",
-    ADMIN = "ADMIN"
+  VIEWER = "VIEWER",
+  COMEDIAN = "COMEDIAN",
+  ADMIN = "ADMIN"
 }
-

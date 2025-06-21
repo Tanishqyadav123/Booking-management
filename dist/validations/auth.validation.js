@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.signInUserSchema = exports.signUpUserSchema = exports.verifyOtpSchema = exports.sendOtpSchema = void 0;
-const zod_1 = require("zod");
 const auth_entity_1 = require("../entity/auth.entity");
+const zod_1 = require("zod");
 exports.sendOtpSchema = zod_1.z.object({
     phoneNumber: zod_1.z.string().nonempty({ message: "Phone number is not provided" })
 });
@@ -21,5 +21,5 @@ exports.signUpUserSchema = zod_1.z.object({
 });
 exports.signInUserSchema = zod_1.z.object({
     password: zod_1.z.string().min(8, { message: "Password must of atleast 8 characters" }),
-    email: zod_1.z.string().email({ message: "Invalid Email format" }),
+    email: zod_1.z.string().email({ message: "Invalid Email format" })
 });

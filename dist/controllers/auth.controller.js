@@ -5,10 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getMyProfile = exports.signinUser = exports.signupUser = exports.verifyOtp = exports.sendOtp = void 0;
+exports.setNewPassword = exports.sendOTPForgotPassword = exports.getMyProfile = exports.signinUser = exports.signupUser = exports.verifyOtp = exports.sendOtp = exports.updateUserProfile = void 0;
 const auth_repo_1 = require("../repo/auth.repo");
-const config_1 = require("../config");
 const auth_validation_1 = require("../validations/auth.validation");
+const config_1 = require("../config");
 const auth_entity_1 = require("../entity/auth.entity");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const error_middleware_1 = require("../middlewares/error.middleware");
@@ -144,3 +144,88 @@ const getMyProfile = async (req, res) => {
     }
 };
 exports.getMyProfile = getMyProfile;
+const updateUserProfile = async (req, res, next) => {
+    try {
+        const { userId } = req.user;
+        const { success, data } = auth_validation_1.updateUserProfileSchema.safeParse(req.body);
+        if (!success) {
+            throw next(new error_middleware_1.ErrorHandler("Validation Failed", 400));
+        }
+        const { firstName, lastName } = data;
+        const userDetailsToUpdate = await (0, auth_repo_1.fetchUserProfileService)({ userId });
+        if (!userDetailsToUpdate) {
+            throw next(new error_middleware_1.ErrorHandler("User details not found", 404));
+        }
+        const dataToUpdate = {
+            firstName: firstName ? firstName : userDetailsToUpdate.firstName,
+            lastName: lastName ? lastName : userDetailsToUpdate.lastName
+        };
+        const updatedUserProfile = await (0, auth_repo_1.updatedUserDetailsService)({ userId, data: dataToUpdate });
+        return (0, response_handler_1.responseHandler)(res, "Profile Updated SuccessFully", 200, updatedUserProfile);
+    }
+    catch (error) {
+        throw error;
+    }
+};
+exports.updateUserProfile = updateUserProfile;
+// Controller for forgot-password :-
+const sendOTPForgotPassword = async (req, res, next) => {
+    try {
+        const { success, data } = auth_validation_1.forgotPasswordOtpSchema.safeParse(req.body);
+        if (!success) {
+            throw next(new error_middleware_1.ErrorHandler("Validation Failed", 400));
+        }
+        const { phoneNumber } = data;
+        // Check phone number exist or not :-
+        const isPhoneExist = await (0, auth_repo_1.isUserExistWithEmailOrPhoneService)({ phoneNumber });
+        if (!isPhoneExist) {
+            throw next(new error_middleware_1.ErrorHandler("User does not exist with this phone Number", 404));
+        }
+        // Send OTP on phone number :-
+        let otp = (0, generate_otp_1.generateOtp)();
+        if (config_1.NODE_ENV === "production") {
+            // Use Twilio Service :-
+            twilio_config_1.twilioClient.messages.create({
+                to: phoneNumber,
+                from: config_1.TWILIO_PHONE_NUMBER,
+                body: `Your Forgot Password OTP is ${otp}`
+            });
+        }
+        else {
+            otp = "1234";
+        }
+        // Expiry :-
+        const currentDate = new Date();
+        const expiry = new Date(currentDate.setMinutes(currentDate.getMinutes() + 2)).toISOString();
+        // Make an entry in the DB :-
+        await (0, auth_repo_1.upsertVerificationCodeService)({ code: otp, codeType: auth_entity_1.verificationCodeType.FORGOT, phoneNumber, expiry });
+        return (0, response_handler_1.responseHandler)(res, "Otp Sent for forgot Password", 200);
+    }
+    catch (error) {
+        throw error;
+    }
+};
+exports.sendOTPForgotPassword = sendOTPForgotPassword;
+const setNewPassword = async (req, res, next) => {
+    try {
+        const { success, data } = auth_validation_1.setNewPasswordSchema.safeParse(req.body);
+        if (!success) {
+            throw next(new error_middleware_1.ErrorHandler("Validation Failed", 400));
+        }
+        const { password, phoneNumber } = data;
+        // Check for this phoneNumber , user have verified the otp for forgot Password :-
+        const isVerified = await (0, auth_repo_1.phoneVerifiedForForgotService)({ phoneNumber });
+        if (!isVerified) {
+            throw next(new error_middleware_1.ErrorHandler("Forgot Password OTP is not verified", 400));
+        }
+        // Hash the new Password :-
+        const hashedPassword = await bcrypt_1.default.hash(password, 10);
+        // Updating the Password :-
+        await (0, auth_repo_1.updatePasswordService)({ password: hashedPassword, phoneNumber });
+        return (0, response_handler_1.responseHandler)(res, "Password Updated successFully", 200);
+    }
+    catch (error) {
+        throw error;
+    }
+};
+exports.setNewPassword = setNewPassword;

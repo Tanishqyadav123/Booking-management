@@ -9,6 +9,7 @@ const app = express();
 // Adding the middleware for extracting data :-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use("/public", express.static("uploads"));
 
 app.use("/api/v1/", router);
 

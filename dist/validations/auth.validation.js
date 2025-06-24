@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signInUserSchema = exports.signUpUserSchema = exports.verifyOtpSchema = exports.sendOtpSchema = void 0;
+exports.setNewPasswordSchema = exports.forgotPasswordOtpSchema = exports.updateUserProfileSchema = exports.signInUserSchema = exports.signUpUserSchema = exports.verifyOtpSchema = exports.sendOtpSchema = void 0;
 const auth_entity_1 = require("../entity/auth.entity");
 const zod_1 = require("zod");
 exports.sendOtpSchema = zod_1.z.object({
@@ -17,9 +17,20 @@ exports.signUpUserSchema = zod_1.z.object({
     password: zod_1.z.string().min(8, { message: "Password must of atleast 8 characters" }),
     email: zod_1.z.string().email({ message: "Invalid Email format" }),
     phoneNumber: zod_1.z.string().nonempty({ message: "Phone number is not provided" }),
-    userType: zod_1.z.enum([auth_entity_1.userType.COMEDIAN, auth_entity_1.userType.VIEWER])
+    userType: zod_1.z.enum([auth_entity_1.userType.COMEDIAN, auth_entity_1.userType.VIEWER, auth_entity_1.userType.ADMIN])
 });
 exports.signInUserSchema = zod_1.z.object({
     password: zod_1.z.string().min(8, { message: "Password must of atleast 8 characters" }),
     email: zod_1.z.string().email({ message: "Invalid Email format" })
+});
+exports.updateUserProfileSchema = zod_1.z.object({
+    firstName: zod_1.z.string().nonempty({ message: "First Name can not be empty" }).optional(),
+    lastName: zod_1.z.string().nonempty({ message: "Last Name can not be empty" }).optional()
+});
+exports.forgotPasswordOtpSchema = zod_1.z.object({
+    phoneNumber: zod_1.z.string().nonempty({ message: "Phone number can not be empty" })
+});
+exports.setNewPasswordSchema = zod_1.z.object({
+    phoneNumber: zod_1.z.string().nonempty(),
+    password: zod_1.z.string().min(8, { message: "Password must be atleast 8 characters" })
 });

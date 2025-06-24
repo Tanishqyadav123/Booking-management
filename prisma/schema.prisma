@@ -71,6 +71,8 @@ model Location {
   // References :-
   adminDetails AdminUser @relation(fields: [adminId], references: [id])
   venueDetails Venue[]
+
+  @@unique([name , state , country])
 }
 
 model Venue {
@@ -83,7 +85,7 @@ model Venue {
   updatedAt  DateTime @updatedAt
 
   // References :-
-  locationDetails  Location     @relation(fields: [locationId], references: [id])
+  locationDetails  Location     @relation(fields: [locationId], references: [id] , onDelete: Cascade)
   VenueSeatDetails VenueSeats[]
   EventDetails     Event[]
 }

@@ -25,3 +25,9 @@ export interface decodedUserType {
   userId: string;
   userRole: userType;
 }
+
+export interface updateUserProfileType {
+  firstName?: string;
+  lastName?: string;
+  avatar?: string;
+}

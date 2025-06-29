@@ -9,8 +9,7 @@ import {
 } from "../repo/location.repo";
 import { NextFunction, Request, Response } from "express";
 import { ErrorHandler } from "../middlewares/error.middleware";
-import { IP_ADDRESS } from "../config";
-import path from "path";
+import { generateFilePath } from "../utils/generateFilepath";
 import { responseHandler } from "../handlers/response.handler";
 
 const addNewLocation = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
@@ -41,12 +40,8 @@ const getAllLocation = async (req: Request, res: Response): Promise<any> => {
 
     allLocations.forEach((locationDetails) => {
       if (locationDetails.locationImage) {
-        const filePath = locationDetails.locationImage.split("\\")[1];
-
-        console.log("my file path", filePath);
-
         // console.log("my file path", filePath);
-        locationDetails.locationImage = IP_ADDRESS + `public/` + filePath;
+        locationDetails.locationImage = generateFilePath(locationDetails.locationImage);
       }
     });
 
@@ -69,8 +64,7 @@ const getSingleLocation = async (req: Request, res: Response, next: NextFunction
     }
 
     if (locationDetails.locationImage) {
-      const filePath = locationDetails.locationImage.split("\\")[1];
-      locationDetails.locationImage = IP_ADDRESS + `public/` + filePath;
+      locationDetails.locationImage = generateFilePath(locationDetails.locationImage);
     }
 
     return responseHandler(res, "Location Details", 200, locationDetails);

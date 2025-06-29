@@ -52,7 +52,6 @@ const adminSignIn = async (req: Request, res: Response, next: NextFunction): Pro
     const { email, password } = data;
     // check email must exist :-
     const isEmailExist = await isAdminExistWithEmailOrPhoneService({ email });
-    console.log("Is Email Exist ", isEmailExist);
 
     if (!isEmailExist) {
       throw next(new ErrorHandler("Invalid Credentails", 400));
